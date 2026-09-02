@@ -1,6 +1,6 @@
 """
-Health Check Router — Day 1
-Provides /health and / endpoints to verify the API is alive.
+Health Check Router — Day 1 & Day 2
+Provides /health and / endpoints to verify the API and Database status.
 """
 
 from fastapi import APIRouter, Request
@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 
 from app.core.config import settings
 from app.core.custom_docs import get_developer_dashboard_html
+from app.db.session import check_db_connection
 
 router = APIRouter(tags=["Health"])
 
@@ -18,6 +19,7 @@ class HealthResponse(BaseModel):
     app_name: str
     version: str
     environment: str
+    database: str
     timestamp: str
     message: str
 
@@ -31,11 +33,14 @@ async def root(request: Request):
     accept = request.headers.get("accept", "")
     if "text/html" in accept:
         return get_developer_dashboard_html()
+    
+    db_connected = await check_db_connection()
     return HealthResponse(
-        status="ok",
+        status="ok" if db_connected else "degraded",
         app_name=settings.APP_NAME,
         version=settings.APP_VERSION,
         environment=settings.ENVIRONMENT,
+        database="connected" if db_connected else "disconnected",
         timestamp=datetime.now(timezone.utc).isoformat(),
         message="Welcome to the Stock Portfolio & Investment Management API 🚀",
     )
@@ -45,14 +50,16 @@ async def root(request: Request):
     "/health",
     response_model=HealthResponse,
     summary="Health check",
-    description="Returns API health status. Used by load balancers and uptime monitors.",
+    description="Returns API and database health status. Used by load balancers and uptime monitors.",
 )
 async def health_check() -> HealthResponse:
+    db_connected = await check_db_connection()
     return HealthResponse(
-        status="healthy",
+        status="healthy" if db_connected else "unhealthy",
         app_name=settings.APP_NAME,
         version=settings.APP_VERSION,
         environment=settings.ENVIRONMENT,
+        database="connected" if db_connected else "disconnected",
         timestamp=datetime.now(timezone.utc).isoformat(),
-        message="All systems operational",
+        message="All systems operational" if db_connected else "Database connectivity issue detected",
     )
