@@ -26,16 +26,22 @@ lib64/
 
 # ── Environment & Secrets ───────────────────────────────────────
 .env
-.env.local
-.env.*.local
-.env.development
-.env.production
+.env*
 !.env.example
+*.pem
+*.key
+*.crt
+*.pfx
+secrets.json
 
 # ── Database & SQLite ───────────────────────────────────────────
 *.db
+*.db-journal
+*.db-wal
 *.sqlite3
 *.sqlite
+*.sql
+*.dump
 
 # ── IDE & OS Metadata ───────────────────────────────────────────
 .vscode/

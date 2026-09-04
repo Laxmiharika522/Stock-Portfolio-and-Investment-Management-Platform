@@ -36,10 +36,18 @@ class AppException(Exception):
 class NotFoundException(AppException):
     """Resource not found."""
 
-    def __init__(self, resource: str, identifier: Any = None):
-        msg = f"{resource} not found"
-        if identifier:
-            msg = f"{resource} with id '{identifier}' not found"
+    def __init__(
+        self,
+        resource: str = "Resource",
+        identifier: Any = None,
+        message: str | None = None,
+        detail: str | None = None,
+    ):
+        msg = message or detail
+        if not msg:
+            msg = f"{resource} not found"
+            if identifier:
+                msg = f"{resource} with id '{identifier}' not found"
         super().__init__(
             status_code=status.HTTP_404_NOT_FOUND,
             error_code="NOT_FOUND",
@@ -50,44 +58,65 @@ class NotFoundException(AppException):
 class ForbiddenException(AppException):
     """Access denied — ownership or role check failed."""
 
-    def __init__(self, message: str = "You do not have permission to access this resource"):
+    def __init__(
+        self,
+        message: str = "You do not have permission to access this resource",
+        detail: str | None = None,
+    ):
+        msg = detail or message
         super().__init__(
             status_code=status.HTTP_403_FORBIDDEN,
             error_code="FORBIDDEN",
-            message=message,
+            message=msg,
         )
 
 
 class UnauthorizedException(AppException):
     """Authentication required."""
 
-    def __init__(self, message: str = "Authentication credentials are invalid or expired"):
+    def __init__(
+        self,
+        message: str = "Authentication credentials are invalid or expired",
+        detail: str | None = None,
+    ):
+        msg = detail or message
         super().__init__(
             status_code=status.HTTP_401_UNAUTHORIZED,
             error_code="UNAUTHORIZED",
-            message=message,
+            message=msg,
         )
 
 
 class ConflictException(AppException):
     """Resource already exists or conflict in state."""
 
-    def __init__(self, message: str):
+    def __init__(
+        self,
+        message: str = "Resource conflict",
+        detail: str | None = None,
+    ):
+        msg = detail or message
         super().__init__(
             status_code=status.HTTP_409_CONFLICT,
             error_code="CONFLICT",
-            message=message,
+            message=msg,
         )
 
 
 class BadRequestException(AppException):
     """Invalid request — business rule violated."""
 
-    def __init__(self, message: str, details: Any = None):
+    def __init__(
+        self,
+        message: str = "Bad request",
+        details: Any = None,
+        detail: str | None = None,
+    ):
+        msg = detail or message
         super().__init__(
             status_code=status.HTTP_400_BAD_REQUEST,
             error_code="BAD_REQUEST",
-            message=message,
+            message=msg,
             details=details,
         )
 
