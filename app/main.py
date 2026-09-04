@@ -40,9 +40,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """
     logger.info("🚀 Starting %s v%s", settings.APP_NAME, settings.APP_VERSION)
     logger.info("📦 Environment : %s", settings.ENVIRONMENT)
-    logger.info("🌐 Server      : http://%s:%s", settings.HOST, settings.PORT)
-    logger.info("📚 Swagger UI  : http://%s:%s/docs", settings.HOST, settings.PORT)
-    logger.info("📖 ReDoc       : http://%s:%s/redoc", settings.HOST, settings.PORT)
+    display_host = "localhost" if settings.HOST == "0.0.0.0" else settings.HOST
+    logger.info("🌐 Server      : http://%s:%s", display_host, settings.PORT)
+    logger.info("📚 Swagger UI  : http://%s:%s/docs", display_host, settings.PORT)
+    logger.info("📖 ReDoc       : http://%s:%s/redoc", display_host, settings.PORT)
 
     # Future days will add: DB connection, Redis ping, scheduler start, etc.
 
@@ -179,15 +180,15 @@ async def custom_swagger_ui_html():
 # Day 1: Health check
 app.include_router(health_router)
 
-# Day 3+: Auth & Users (uncomment as you build them)
-# from app.api.v1.auth import router as auth_router
-# from app.api.v1.users import router as users_router
-# app.include_router(auth_router, prefix="/api/v1")
-# app.include_router(users_router, prefix="/api/v1")
+# Day 3: Auth & Users
+from app.api.v1.auth import router as auth_router
+from app.api.v1.users import router as users_router
+app.include_router(auth_router, prefix="/api/v1")
+app.include_router(users_router, prefix="/api/v1")
 
-# Day 4+: Portfolios
-# from app.api.v1.portfolios import router as portfolios_router
-# app.include_router(portfolios_router, prefix="/api/v1")
+# Day 4: Portfolios
+from app.api.v1.portfolios import router as portfolios_router
+app.include_router(portfolios_router, prefix="/api/v1")
 
 # Day 5+: Stocks
 # from app.api.v1.stocks import router as stocks_router

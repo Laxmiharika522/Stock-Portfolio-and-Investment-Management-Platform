@@ -813,8 +813,8 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
                     <span class="metric-title">Roadmap Progress</span>
                     <span class="metric-icon">🏆</span>
                 </div>
-                <div class="metric-value">Day 1</div>
-                <div class="metric-desc">Core setup & routing ready</div>
+                <div class="metric-value">Day 2+</div>
+                <div class="metric-desc">Async SQLAlchemy 2.0 & DB ready</div>
             </div>
         </div>
 
@@ -860,10 +860,10 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
                     </div>
                 </div>
 
-                <div class="day-card">
-                    <div class="day-badge">2</div>
+                <div class="day-card completed">
+                    <div class="day-badge">✓</div>
                     <div class="day-info">
-                        <h4>Day 2: PostgreSQL & DB Setup</h4>
+                        <h4>Day 2: Database Setup & Models</h4>
                         <p>Async SQLAlchemy 2.0, Alembic migrations & User model.</p>
                     </div>
                 </div>
