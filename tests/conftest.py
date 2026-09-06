@@ -101,6 +101,23 @@ async def user_b(db_session: AsyncSession) -> User:
     return user
 
 
+@pytest_asyncio.fixture
+async def admin_user(db_session: AsyncSession) -> User:
+    """Fixture providing an administrator user."""
+    user = User(
+        email=f"admin_{uuid.uuid4().hex[:6]}@example.com",
+        username=f"admin_{uuid.uuid4().hex[:6]}",
+        hashed_password=hash_password("AdminPassword123!"),
+        full_name="Admin User",
+        is_active=True,
+        is_admin=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
 @pytest.fixture
 def token_user_a(user_a: User) -> str:
     """Generate access token for user A."""
@@ -111,3 +128,10 @@ def token_user_a(user_a: User) -> str:
 def token_user_b(user_b: User) -> str:
     """Generate access token for user B."""
     return create_access_token(subject=str(user_b.id))
+
+
+@pytest.fixture
+def token_admin(admin_user: User) -> str:
+    """Generate access token for admin user."""
+    return create_access_token(subject=str(admin_user.id))
+

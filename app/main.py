@@ -190,9 +190,9 @@ app.include_router(users_router, prefix="/api/v1")
 from app.api.v1.portfolios import router as portfolios_router
 app.include_router(portfolios_router, prefix="/api/v1")
 
-# Day 5+: Stocks
-# from app.api.v1.stocks import router as stocks_router
-# app.include_router(stocks_router, prefix="/api/v1")
+# Day 5: Stocks
+from app.api.v1.stocks import router as stocks_router
+app.include_router(stocks_router, prefix="/api/v1")
 
 # Day 6+: Transactions
 # from app.api.v1.transactions import router as transactions_router
