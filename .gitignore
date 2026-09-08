@@ -33,15 +33,22 @@ lib64/
 *.crt
 *.pfx
 secrets.json
+*.secret
 
 # ── Database & SQLite ───────────────────────────────────────────
 *.db
 *.db-journal
 *.db-wal
+*.db-shm
 *.sqlite3
 *.sqlite
 *.sql
 *.dump
+
+# ── Alembic runtime artifacts ────────────────────────────────────
+# (keep alembic/versions/*.py tracked; ignore runtime-only files)
+alembic/__pycache__/
+alembic/versions/__pycache__/
 
 # ── IDE & OS Metadata ───────────────────────────────────────────
 .vscode/
@@ -52,12 +59,15 @@ secrets.json
 .DS_Store
 Thumbs.db
 ehthumbs.db
+desktop.ini
 
 # ── Testing & Coverage ──────────────────────────────────────────
 .pytest_cache/
 .coverage
+.coverage.*
 htmlcov/
 coverage.xml
+junit.xml
 
 # ── Logs & Uploads ──────────────────────────────────────────────
 *.log
@@ -65,3 +75,12 @@ logs/
 uploads/
 temp/
 scratch/
+
+# ── Docker ──────────────────────────────────────────────────────
+docker-compose.override.yml
+.docker/
+*.env.docker
+
+# ── Project-specific scratch / generated files ──────────────────
+implementation_plan.md
+task.md

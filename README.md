@@ -6,7 +6,7 @@ A **production-grade FinTech backend API** built with FastAPI, Async SQLAlchemy 
 [![Python](https://img.shields.io/badge/Python-3.13-3776AB?style=flat&logo=python)](https://python.org)
 [![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-red?style=flat&logo=sqlalchemy)](https://sqlalchemy.org)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?style=flat&logo=postgresql)](https://postgresql.org)
-[![Day 5 Completed](https://img.shields.io/badge/Day%205-Completed-10b981?style=flat)](https://github.com/Laxmiharika522/Stock-Portfolio-and-Investment-Management-Platform)
+[![Day 6 Completed](https://img.shields.io/badge/Day%206-Completed-10b981?style=flat)](https://github.com/Laxmiharika522/Stock-Portfolio-and-Investment-Management-Platform)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
@@ -110,6 +110,44 @@ During **Day 5**, the global Stock catalog, search & filtering query engine, pag
 
 ---
 
+## ✅ DAY 6 Implementation — BUY / SELL Transactions, Cash Balance & Trade History
+
+> **Date:** 8 Sept 2026 | **Submission:** Submitted on Time | **Status:** ✅ Completed
+
+During **Day 6**, a full transaction engine was built on top of the portfolio and stock catalog layers, enabling real BUY/SELL trade execution with strict financial validation:
+
+- **Transaction Database Model ([`app/models/transaction.py`](file:///d:/Zyora%20Internship/Stock_Market/app/models/transaction.py)):**
+  - Designed [`Transaction`](file:///d:/Zyora%20Internship/Stock_Market/app/models/transaction.py) entity storing `transaction_type` (BUY/SELL enum), `quantity`, `price_per_share`, `fees`, computed `total_amount`, optional `notes`, and `transacted_at` (backdatable timestamp).
+  - FK relationships to `portfolios.id` and `stocks.id` with `ON DELETE CASCADE` and full indexed columns.
+  - Alembic migration script ([`d6a1b2c3e4f5_add_cash_balance_and_transactions_table.py`](file:///d:/Zyora%20Internship/Stock_Market/alembic/versions/d6a1b2c3e4f5_add_cash_balance_and_transactions_table.py)) adds `cash_balance` + `total_invested` to `portfolios` and creates the `transactions` table.
+
+- **Portfolio Balance Fields ([`app/models/portfolio.py`](file:///d:/Zyora%20Internship/Stock_Market/app/models/portfolio.py)):**
+  - Added `cash_balance` (virtual wallet funded via deposit) and `total_invested` (cumulative BUY cost basis) to the `Portfolio` model and schema (`PortfolioOut`).
+
+- **Pydantic v2 Schemas ([`app/schemas/transaction.py`](file:///d:/Zyora%20Internship/Stock_Market/app/schemas/transaction.py)):**
+  - Created `TransactionCreate` (with field validators for quantity precision and symbol uppercasing), `DepositRequest`, `TransactionOut` (with embedded `StockSummary`), `TransactionResponse`, `DepositResponse`, and `PaginatedTransactionResponse`.
+
+- **Transaction Business Service ([`app/services/transaction_service.py`](file:///d:/Zyora%20Internship/Stock_Market/app/services/transaction_service.py)):**
+  - **BUY logic:** `total_cost = (quantity × price_per_share) + fees` — raises `400 INSUFFICIENT_FUNDS` if `cash_balance < total_cost`; deducts balance and increments `total_invested`.
+  - **SELL logic:** `net_proceeds = (quantity × price_per_share) - fees` — aggregates net held quantity from all prior BUYs/SELLs; raises `400 INSUFFICIENT_SHARES` if not enough shares owned; adds proceeds to balance.
+  - `deposit_cash()` — funds portfolio cash balance (required before any BUY trade).
+  - `get_portfolio_transactions()` — paginated history with optional `transaction_type` and `stock_symbol` filters.
+  - `get_transaction_by_id()` — single trade detail with portfolio-scoped security.
+
+- **Transaction Routers ([`app/api/v1/transactions.py`](file:///d:/Zyora%20Internship/Stock_Market/app/api/v1/transactions.py)):**
+  - `POST /api/v1/portfolios/{id}/deposit` — Fund portfolio cash balance.
+  - `POST /api/v1/portfolios/{id}/transactions` — Execute BUY or SELL with full balance/quantity validation.
+  - `GET /api/v1/portfolios/{id}/transactions` — Paginated trade history with type/symbol filters.
+  - `GET /api/v1/portfolios/{id}/transactions/{tx_id}` — Single trade detail (portfolio-scoped).
+
+- **Exception Enhancements ([`app/core/exceptions.py`](file:///d:/Zyora%20Internship/Stock_Market/app/core/exceptions.py)):**
+  - Added `InsufficientFundsException` (`400 INSUFFICIENT_FUNDS`) with `required_amount`, `available_balance`, and `currency` details payload.
+
+- **Transaction Automated Test Suite ([`tests/test_transactions.py`](file:///d:/Zyora%20Internship/Stock_Market/tests/test_transactions.py)):**
+  - 15 integration tests covering: deposit success & validation, BUY success (balance deduction), BUY with insufficient funds (`400`), BUY with unknown symbol (`404`), SELL success (proceeds credited), SELL exceeding holdings (`400 INSUFFICIENT_SHARES`), SELL with no prior BUY, paginated history, history filter by type, single transaction detail, 404 on missing ID, and cross-user `403 Forbidden` isolation.
+
+---
+
 ## 🌐 API Endpoint Summary
 
 | Method | Endpoint | Auth Required | Description | Success Status | Error Codes |
@@ -133,6 +171,10 @@ During **Day 5**, the global Stock catalog, search & filtering query engine, pag
 | `POST` | `/api/v1/stocks` | Admin | Create new stock record in catalog | `201 Created` | `401 Unauthorized`, `403 Forbidden`, `409 Conflict` |
 | `PUT` | `/api/v1/stocks/{symbol}` | Admin | Update existing stock record | `200 OK` | `401 Unauthorized`, `403 Forbidden`, `404 Not Found` |
 | `POST` | `/api/v1/stocks/seed` | Admin | Seed popular stock catalog assets | `200 OK` | `401 Unauthorized`, `403 Forbidden` |
+| `POST` | `/api/v1/portfolios/{id}/deposit` | Yes | Deposit cash into portfolio balance | `200 OK` | `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found` |
+| `POST` | `/api/v1/portfolios/{id}/transactions` | Yes | Execute BUY or SELL trade | `201 Created` | `400 INSUFFICIENT_FUNDS/SHARES`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found` |
+| `GET` | `/api/v1/portfolios/{id}/transactions` | Yes | List paginated trade history (filter by type/symbol) | `200 OK` | `401 Unauthorized`, `403 Forbidden` |
+| `GET` | `/api/v1/portfolios/{id}/transactions/{tx_id}` | Yes | Get single transaction detail | `200 OK` | `401 Unauthorized`, `403 Forbidden`, `404 Not Found` |
 
 ---
 
@@ -173,7 +215,8 @@ stock_portfolio/
 │   └── versions/                  # Database migration scripts
 │       ├── 3004a631c566_create_user_table.py
 │       ├── f1a207002db9_create_portfolio_table.py
-│       └── 7a892b104c21_create_stock_table.py
+│       ├── 7a892b104c21_create_stock_table.py
+│       └── d6a1b2c3e4f5_add_cash_balance_and_transactions_table.py  # Day 6
 ├── app/
 │   ├── api/
 │   │   ├── deps.py                # Auth dependency injectors (get_current_user, get_current_admin_user)
@@ -182,27 +225,31 @@ stock_portfolio/
 │   │       ├── health.py          # GET /health & GET / endpoints
 │   │       ├── portfolios.py      # Portfolio CRUD & ownership endpoints
 │   │       ├── stocks.py          # Stock catalog search, filter, pagination & admin endpoints
+│   │       ├── transactions.py    # BUY/SELL trade execution, deposit & history (Day 6)
 │   │       └── users.py           # User profile & password management
 │   ├── core/
 │   │   ├── config.py              # Pydantic v2 settings (.env loader)
 │   │   ├── custom_docs.py         # Custom Swagger UI & Developer Portal
-│   │   ├── exceptions.py          # Global exception handlers
+│   │   ├── exceptions.py          # Global exception handlers (incl. InsufficientFundsException)
 │   │   └── security.py            # Bcrypt password hashing & JWT tokens
 │   ├── db/
 │   │   ├── base.py                # Base model & TimestampMixin
 │   │   └── session.py             # Async engine & session factory
 │   ├── models/
 │   │   ├── user.py                # User database model
-│   │   ├── portfolio.py           # Portfolio database model
-│   │   └── stock.py              # Stock catalog database model
+│   │   ├── portfolio.py           # Portfolio database model (+ cash_balance, total_invested)
+│   │   ├── stock.py               # Stock catalog database model
+│   │   └── transaction.py         # Transaction model — BUY/SELL trades (Day 6)
 │   ├── schemas/
 │   │   ├── user.py                # User Pydantic v2 validation schemas
-│   │   ├── portfolio.py           # Portfolio Pydantic v2 validation schemas
-│   │   └── stock.py              # Stock catalog & pagination schemas
+│   │   ├── portfolio.py           # Portfolio schemas (+ cash_balance, total_invested fields)
+│   │   ├── stock.py               # Stock catalog & pagination schemas
+│   │   └── transaction.py         # Transaction schemas — create, response, deposit, paginated (Day 6)
 │   ├── services/
 │   │   ├── auth_service.py        # User authentication & registration service
 │   │   ├── portfolio_service.py   # Portfolio CRUD business logic & authorization
-│   │   └── stock_service.py       # Stock catalog query engine, search, filter & seed service
+│   │   ├── stock_service.py       # Stock catalog query engine, search, filter & seed service
+│   │   └── transaction_service.py # BUY/SELL logic, balance validation, deposit, history (Day 6)
 │   └── main.py                    # FastAPI entry point & middleware pipeline
 ├── tests/
 │   ├── conftest.py                # Shared async pytest fixtures & token generators (user_a, user_b, admin)
@@ -210,11 +257,11 @@ stock_portfolio/
 │   ├── test_day2_db.py            # User model & DB health tests
 │   ├── test_permissions.py        # Multi-tenant ownership isolation tests (403 Forbidden)
 │   ├── test_portfolios.py         # Authenticated Portfolio CRUD API tests
-│   └── test_stocks.py             # Stock catalog search, filter, pagination & admin protection tests
+│   ├── test_stocks.py             # Stock catalog search, filter, pagination & admin protection tests
+│   └── test_transactions.py       # BUY/SELL trade, deposit, balance & authorization tests (Day 6)
 ├── .env.example                   # Template environment configuration (sanitized)
 ├── .gitignore                     # Git exclusion rules for security
 ├── alembic.ini                    # Alembic configuration
-├── implementation_plan.md         # 15-Day internship master blueprint
 ├── requirements.txt               # Installed Python packages
 └── README.md                      # Project documentation
 ```
@@ -271,16 +318,17 @@ Once the server is running, visit:
 
 ## 🧪 Automated Test Suite Results
 
-All 22 integration & permission unit tests pass cleanly:
+All 37 integration & permission unit tests pass cleanly:
 
 ```text
-tests/test_auth.py ....                                                  [ 18%]
-tests/test_day2_db.py ....                                               [ 36%]
-tests/test_permissions.py .....                                          [ 59%]
-tests/test_portfolios.py ..                                              [ 68%]
-tests/test_stocks.py .......                                             [100%]
+tests/test_auth.py ....                                                  [ 10%]
+tests/test_day2_db.py ....                                               [ 21%]
+tests/test_permissions.py .....                                          [ 34%]
+tests/test_portfolios.py ..                                              [ 40%]
+tests/test_stocks.py .......                                             [ 59%]
+tests/test_transactions.py ...............                               [100%]
 
-======================= 22 passed in 6.22s =======================
+======================= 37 passed in 11.41s =======================
 ```
 
 ---
@@ -294,7 +342,7 @@ tests/test_stocks.py .......                                             [100%]
 | **Day 3** | **JWT authentication, user registration, bcrypt hashing, profile management & refresh tokens** | ✅ Completed |
 | **Day 4** | **Portfolio model, CRUD endpoints, default portfolio handling & strict ownership authorization (403)** | ✅ Completed |
 | **Day 5** | **Stock catalog model, search engine, sector/exchange filtering, pagination metadata & admin endpoints** | ✅ Completed |
-| **Day 6** | BUY / SELL transactions with balance validation | 🔲 Planned |
+| **Day 6** | **BUY / SELL transactions with balance validation, cash deposit, paginated history & InsufficientFunds/Shares errors** | ✅ Completed |
 | **Day 7** | Holdings calculation (weighted average buy price & unrealized P&L) | 🔲 Planned |
 | **Day 8** | Market data integration (Alpha Vantage API) | 🔲 Planned |
 | **Day 9** | Watchlist & target price alerts | 🔲 Planned |
