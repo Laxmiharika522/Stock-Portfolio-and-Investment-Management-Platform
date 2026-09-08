@@ -194,9 +194,10 @@ app.include_router(portfolios_router, prefix="/api/v1")
 from app.api.v1.stocks import router as stocks_router
 app.include_router(stocks_router, prefix="/api/v1")
 
-# Day 6+: Transactions
-# from app.api.v1.transactions import router as transactions_router
-# app.include_router(transactions_router, prefix="/api/v1")
+# Day 6: Transactions (BUY/SELL)
+from app.api.v1.transactions import router as transactions_router
+app.include_router(transactions_router, prefix="/api/v1")
+
 
 # Day 7+: Holdings
 # from app.api.v1.holdings import router as holdings_router
