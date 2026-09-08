@@ -133,6 +133,25 @@ class InsufficientSharesException(AppException):
         )
 
 
+class InsufficientFundsException(AppException):
+    """Raised when portfolio cash balance is too low for a BUY trade."""
+
+    def __init__(self, required: float, available: float, currency: str = "USD"):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            error_code="INSUFFICIENT_FUNDS",
+            message=(
+                f"Insufficient funds. Required: {currency} {required:,.2f}, "
+                f"Available: {currency} {available:,.2f}."
+            ),
+            details={
+                "required_amount": required,
+                "available_balance": available,
+                "currency": currency,
+            },
+        )
+
+
 class AdminRequiredException(AppException):
     """Endpoint requires admin privileges."""
 

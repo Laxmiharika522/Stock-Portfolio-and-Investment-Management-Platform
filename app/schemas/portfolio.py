@@ -31,6 +31,8 @@ class PortfolioOut(PortfolioBase):
     id: uuid.UUID
     user_id: uuid.UUID
     total_value: float = Field(0.0, description="Calculated total portfolio value", json_schema_extra={"example": 12500.50})
+    cash_balance: float = Field(0.0, description="Available cash for trading", json_schema_extra={"example": 45000.00})
+    total_invested: float = Field(0.0, description="Cumulative cost basis of BUY trades", json_schema_extra={"example": 5000.00})
     created_at: datetime
     updated_at: datetime
 
