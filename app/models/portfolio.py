@@ -1,11 +1,12 @@
 """
-Portfolio Database Model — Day 4
+Portfolio Database Model — Day 4 / Day 6
 Represents investment portfolios owned by users.
+Day 6 adds: cash_balance, total_invested, and transactions relationship.
 """
 
 import uuid
-from typing import Optional, TYPE_CHECKING
-from sqlalchemy import Boolean, ForeignKey, String
+from typing import List, Optional, TYPE_CHECKING
+from sqlalchemy import Boolean, Float, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -13,6 +14,7 @@ from app.db.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
     from app.models.user import User
+    from app.models.transaction import Transaction
 
 
 class Portfolio(Base, TimestampMixin):
@@ -64,5 +66,25 @@ class Portfolio(Base, TimestampMixin):
         doc="Whether this is the user's primary default portfolio",
     )
 
+    cash_balance: Mapped[float] = mapped_column(
+        Float,
+        default=0.0,
+        nullable=False,
+        doc="Available cash balance for trading (virtual wallet in portfolio currency)",
+    )
+
+    total_invested: Mapped[float] = mapped_column(
+        Float,
+        default=0.0,
+        nullable=False,
+        doc="Cumulative cost basis of all BUY trades (excludes fees)",
+    )
+
     # Relationships
     user: Mapped["User"] = relationship("User", backref="portfolios")
+    transactions: Mapped[List["Transaction"]] = relationship(
+        "Transaction",
+        back_populates="portfolio",
+        cascade="all, delete-orphan",
+        lazy="select",
+    )
