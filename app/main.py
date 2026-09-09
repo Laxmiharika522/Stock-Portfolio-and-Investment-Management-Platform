@@ -204,8 +204,8 @@ app.include_router(transactions_router, prefix="/api/v1")
 # app.include_router(holdings_router, prefix="/api/v1")
 
 # Day 8+: Market Data
-# from app.api.v1.market import router as market_router
-# app.include_router(market_router, prefix="/api/v1")
+from app.api.v1.market import router as market_router
+app.include_router(market_router, prefix="/api/v1")
 
 # Day 9+: Watchlist
 # from app.api.v1.watchlist import router as watchlist_router
