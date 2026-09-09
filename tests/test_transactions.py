@@ -490,7 +490,14 @@ class TestHoldings:
         portfolio_a: Portfolio,
         sample_stock: Stock,
         token_user_a: str,
+        monkeypatch
     ):
+        async def mock_get_live_quote(symbol):
+            return {"symbol": symbol, "price": 200.0}
+            
+        from app.services.market_data_service import market_data_service
+        monkeypatch.setattr(market_data_service, "get_live_quote", mock_get_live_quote)
+
         headers = auth_header(token_user_a)
 
         # 1. Deposit funds

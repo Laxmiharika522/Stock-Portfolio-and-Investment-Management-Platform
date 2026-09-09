@@ -164,6 +164,24 @@ During **Day 7**, Holdings calculation with weighted average buy price (WABP) an
 
 ---
 
+## ✅ DAY 8 Implementation — Market Data Integration
+
+> **Date:** 9 Sept 2026 | **Status:** ✅ Completed
+
+During **Day 8**, external live market data from Alpha Vantage was integrated:
+- **Market Data Service ([`app/services/market_data_service.py`](file:///d:/Zyora%20Internship/Stock_Market/app/services/market_data_service.py)):**
+  - Integrated `httpx` to fetch live stock quotes (`GLOBAL_QUOTE`) from Alpha Vantage.
+  - Implemented an in-memory TTL cache (`cachetools.TTLCache`) to respect API rate limits (15-minute TTL).
+  - Built a fallback mechanism to return mock data if the API limit is hit or if using the "demo" key.
+- **Market Data Endpoint ([`app/api/v1/market.py`](file:///d:/Zyora%20Internship/Stock_Market/app/api/v1/market.py)):**
+  - Created `GET /api/v1/market/quote/{symbol}` to fetch live pricing and daily change percentage.
+- **Holdings Integration ([`app/services/portfolio_service.py`](file:///d:/Zyora%20Internship/Stock_Market/app/services/portfolio_service.py)):**
+  - Updated the portfolio holdings calculation logic to actively fetch live market quotes for each owned stock symbol instead of relying on outdated transaction prices.
+- **Testing ([`tests/test_market_data.py`](file:///d:/Zyora%20Internship/Stock_Market/tests/test_market_data.py)):**
+  - Added tests for the new market data endpoint using `monkeypatch` to prevent real external HTTP calls during automated testing.
+
+---
+
 ## 🌐 API Endpoint Summary
 
 | Method | Endpoint | Auth Required | Description | Success Status | Error Codes |
@@ -183,6 +201,7 @@ During **Day 7**, Holdings calculation with weighted average buy price (WABP) an
 | `PUT` | `/api/v1/portfolios/{id}` | Yes | Update portfolio details | `200 OK` | `401 Unauthorized`, `403 Forbidden`, `404 Not Found` |
 | `DELETE` | `/api/v1/portfolios/{id}` | Yes | Delete investment portfolio | `204 No Content` | `401 Unauthorized`, `403 Forbidden`, `404 Not Found` |
 | `GET` | `/api/v1/portfolios/{id}/holdings` | Yes | List calculated holdings & unrealized P&L | `200 OK` | `401 Unauthorized`, `403 Forbidden`, `404 Not Found` |
+| `GET` | `/api/v1/market/quote/{symbol}` | No | Get Live Stock Quote | `200 OK` | `422 Validation Error` |
 | `GET` | `/api/v1/stocks` | No | Search, filter & paginate stock catalog | `200 OK` | `422 Validation Error` |
 | `GET` | `/api/v1/stocks/{symbol}` | No | Get detailed stock record by ticker symbol | `200 OK` | `404 Not Found` |
 | `POST` | `/api/v1/stocks` | Admin | Create new stock record in catalog | `201 Created` | `401 Unauthorized`, `403 Forbidden`, `409 Conflict` |
@@ -361,7 +380,7 @@ tests/test_transactions.py ...............                               [100%]
 | **Day 5** | **Stock catalog model, search engine, sector/exchange filtering, pagination metadata & admin endpoints** | ✅ Completed |
 | **Day 6** | **BUY / SELL transactions with balance validation, cash deposit, paginated history & InsufficientFunds/Shares errors** | ✅ Completed |
 | **Day 7** | **Holdings calculation (weighted average buy price & unrealized P&L)** | ✅ Completed |
-| **Day 8** | Market data integration (Alpha Vantage API) | 🔲 Planned |
+| **Day 8** | **Market data integration (Alpha Vantage API)** | ✅ Completed |
 | **Day 9** | Watchlist & target price alerts | 🔲 Planned |
 | **Day 10** | Notifications & background task monitoring | 🔲 Planned |
 | **Day 11** | Advanced search, multi-field filtering & sorting | 🔲 Planned |
