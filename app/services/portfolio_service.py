@@ -174,11 +174,17 @@ class PortfolioService:
                 
             holding["current_price"] = tx.price_per_share
             
+        from app.services.market_data_service import market_data_service
+
         holdings = []
         for holding in holdings_map.values():
             if holding["quantity"] > 0.00001:  # handle floating point precision
                 wabp = holding["total_buy_cost"] / holding["total_buy_qty"] if holding["total_buy_qty"] > 0 else 0.0
-                current_price = holding["current_price"]
+                
+                # Fetch live price
+                quote = await market_data_service.get_live_quote(holding["stock_symbol"])
+                current_price = quote.get("price", holding["current_price"])
+                
                 total_value = holding["quantity"] * current_price
                 unrealized_pnl = total_value - (holding["quantity"] * wabp)
                 unrealized_pnl_percentage = (unrealized_pnl / (holding["quantity"] * wabp) * 100) if wabp > 0 and holding["quantity"] > 0 else 0.0
