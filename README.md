@@ -148,6 +148,22 @@ During **Day 6**, a full transaction engine was built on top of the portfolio an
 
 ---
 
+## ✅ DAY 7 Implementation — Holdings & P&L Calculation
+
+> **Date:** 9 Sept 2026 | **Status:** ✅ Completed
+
+During **Day 7**, Holdings calculation with weighted average buy price (WABP) and unrealized Profit & Loss (P&L) was implemented:
+- **Holding Schema ([`app/schemas/portfolio.py`](file:///d:/Zyora%20Internship/Stock_Market/app/schemas/portfolio.py)):**
+  - Created `HoldingOut` to represent aggregated stock metrics (net quantity, WABP, mock current price, total value, unrealized P&L).
+- **Service Layer ([`app/services/portfolio_service.py`](file:///d:/Zyora%20Internship/Stock_Market/app/services/portfolio_service.py)):**
+  - Added `get_portfolio_holdings()` which traverses all BUY and SELL transactions to accurately calculate cost basis and active holdings per stock.
+- **Holdings Endpoint ([`app/api/v1/portfolios.py`](file:///d:/Zyora%20Internship/Stock_Market/app/api/v1/portfolios.py)):**
+  - `GET /api/v1/portfolios/{id}/holdings` — Calculates and returns the portfolio's active holdings list.
+- **Holdings Automated Test Suite ([`tests/test_transactions.py`](file:///d:/Zyora%20Internship/Stock_Market/tests/test_transactions.py)):**
+  - Added `TestHoldings` tests to verify WABP and P&L calculations through multiple BUY and SELL operations and ensure ownership boundaries.
+
+---
+
 ## 🌐 API Endpoint Summary
 
 | Method | Endpoint | Auth Required | Description | Success Status | Error Codes |
@@ -166,6 +182,7 @@ During **Day 6**, a full transaction engine was built on top of the portfolio an
 | `GET` | `/api/v1/portfolios/{id}` | Yes | Retrieve specific portfolio details by ID | `200 OK` | `401 Unauthorized`, `403 Forbidden`, `404 Not Found` |
 | `PUT` | `/api/v1/portfolios/{id}` | Yes | Update portfolio details | `200 OK` | `401 Unauthorized`, `403 Forbidden`, `404 Not Found` |
 | `DELETE` | `/api/v1/portfolios/{id}` | Yes | Delete investment portfolio | `204 No Content` | `401 Unauthorized`, `403 Forbidden`, `404 Not Found` |
+| `GET` | `/api/v1/portfolios/{id}/holdings` | Yes | List calculated holdings & unrealized P&L | `200 OK` | `401 Unauthorized`, `403 Forbidden`, `404 Not Found` |
 | `GET` | `/api/v1/stocks` | No | Search, filter & paginate stock catalog | `200 OK` | `422 Validation Error` |
 | `GET` | `/api/v1/stocks/{symbol}` | No | Get detailed stock record by ticker symbol | `200 OK` | `404 Not Found` |
 | `POST` | `/api/v1/stocks` | Admin | Create new stock record in catalog | `201 Created` | `401 Unauthorized`, `403 Forbidden`, `409 Conflict` |
@@ -343,7 +360,7 @@ tests/test_transactions.py ...............                               [100%]
 | **Day 4** | **Portfolio model, CRUD endpoints, default portfolio handling & strict ownership authorization (403)** | ✅ Completed |
 | **Day 5** | **Stock catalog model, search engine, sector/exchange filtering, pagination metadata & admin endpoints** | ✅ Completed |
 | **Day 6** | **BUY / SELL transactions with balance validation, cash deposit, paginated history & InsufficientFunds/Shares errors** | ✅ Completed |
-| **Day 7** | Holdings calculation (weighted average buy price & unrealized P&L) | 🔲 Planned |
+| **Day 7** | **Holdings calculation (weighted average buy price & unrealized P&L)** | ✅ Completed |
 | **Day 8** | Market data integration (Alpha Vantage API) | 🔲 Planned |
 | **Day 9** | Watchlist & target price alerts | 🔲 Planned |
 | **Day 10** | Notifications & background task monitoring | 🔲 Planned |
