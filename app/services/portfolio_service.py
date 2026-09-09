@@ -126,3 +126,72 @@ class PortfolioService:
         await db.delete(portfolio)
         await db.commit()
         return True
+
+    @staticmethod
+    async def get_portfolio_holdings(
+        db: AsyncSession,
+        portfolio_id: uuid.UUID,
+        user_id: uuid.UUID,
+        is_admin: bool = False,
+    ) -> list[dict]:
+        """Calculate and return holdings for a portfolio."""
+        portfolio = await PortfolioService.get_portfolio_by_id(db, portfolio_id, user_id, is_admin=is_admin)
+
+        from app.models.transaction import Transaction, TransactionType
+        from sqlalchemy.orm import joinedload
+        
+        stmt = (
+            select(Transaction)
+            .options(joinedload(Transaction.stock))
+            .where(Transaction.portfolio_id == portfolio_id)
+            .order_by(Transaction.transacted_at.asc())
+        )
+        result = await db.execute(stmt)
+        transactions = result.scalars().all()
+        
+        holdings_map = {}
+        
+        for tx in transactions:
+            sym = tx.stock.symbol
+            if sym not in holdings_map:
+                holdings_map[sym] = {
+                    "stock_symbol": sym,
+                    "company_name": tx.stock.company_name,
+                    "quantity": 0.0,
+                    "total_buy_cost": 0.0,
+                    "total_buy_qty": 0.0,
+                    "current_price": 0.0,
+                }
+            
+            holding = holdings_map[sym]
+            
+            if tx.transaction_type == TransactionType.BUY:
+                holding["quantity"] += tx.quantity
+                holding["total_buy_cost"] += (tx.quantity * tx.price_per_share)
+                holding["total_buy_qty"] += tx.quantity
+            elif tx.transaction_type == TransactionType.SELL:
+                holding["quantity"] -= tx.quantity
+                
+            holding["current_price"] = tx.price_per_share
+            
+        holdings = []
+        for holding in holdings_map.values():
+            if holding["quantity"] > 0.00001:  # handle floating point precision
+                wabp = holding["total_buy_cost"] / holding["total_buy_qty"] if holding["total_buy_qty"] > 0 else 0.0
+                current_price = holding["current_price"]
+                total_value = holding["quantity"] * current_price
+                unrealized_pnl = total_value - (holding["quantity"] * wabp)
+                unrealized_pnl_percentage = (unrealized_pnl / (holding["quantity"] * wabp) * 100) if wabp > 0 and holding["quantity"] > 0 else 0.0
+                
+                holdings.append({
+                    "stock_symbol": holding["stock_symbol"],
+                    "company_name": holding["company_name"],
+                    "quantity": round(holding["quantity"], 4),
+                    "weighted_average_buy_price": round(wabp, 2),
+                    "current_price": round(current_price, 2),
+                    "total_value": round(total_value, 2),
+                    "unrealized_pnl": round(unrealized_pnl, 2),
+                    "unrealized_pnl_percentage": round(unrealized_pnl_percentage, 2),
+                })
+                
+        return holdings

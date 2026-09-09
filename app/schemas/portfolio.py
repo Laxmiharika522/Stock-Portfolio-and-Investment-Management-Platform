@@ -37,3 +37,16 @@ class PortfolioOut(PortfolioBase):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class HoldingOut(BaseModel):
+    stock_symbol: str = Field(..., description="Stock ticker symbol")
+    company_name: str = Field(..., description="Company name")
+    quantity: float = Field(..., description="Net shares held")
+    weighted_average_buy_price: float = Field(..., description="Average cost per share of BUYs")
+    current_price: float = Field(..., description="Last known price of the stock")
+    total_value: float = Field(..., description="Total current value of the holding")
+    unrealized_pnl: float = Field(..., description="Unrealized Profit & Loss")
+    unrealized_pnl_percentage: float = Field(..., description="Unrealized Profit & Loss Percentage")
+
+    model_config = ConfigDict(from_attributes=True)
