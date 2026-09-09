@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_current_active_user, get_db
 from app.core.exceptions import ForbiddenException
 from app.models.user import User
-from app.schemas.portfolio import PortfolioCreate, PortfolioOut, PortfolioUpdate
+from app.schemas.portfolio import PortfolioCreate, PortfolioOut, PortfolioUpdate, HoldingOut
 from app.services.portfolio_service import PortfolioService
 
 router = APIRouter(prefix="/portfolios", tags=["Portfolios"])
@@ -106,3 +106,20 @@ async def delete_portfolio(
         db, portfolio_id, user_id=current_user.id, is_admin=current_user.is_admin
     )
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get(
+    "/{portfolio_id}/holdings",
+    response_model=List[HoldingOut],
+    summary="Get portfolio holdings",
+    description="Calculates and returns the aggregated holdings and unrealized P&L for a portfolio.",
+)
+async def get_portfolio_holdings(
+    portfolio_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> List[HoldingOut]:
+    holdings = await PortfolioService.get_portfolio_holdings(
+        db, portfolio_id, user_id=current_user.id, is_admin=current_user.is_admin
+    )
+    return [HoldingOut.model_validate(h) for h in holdings]
