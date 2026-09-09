@@ -477,3 +477,92 @@ class TestTransactionHistory:
             headers=auth_header(token_user_b),
         )
         assert response.status_code == 403
+
+
+# ── Holdings Tests ────────────────────────────────────────────────────────────
+
+class TestHoldings:
+
+    @pytest.mark.asyncio
+    async def test_get_holdings_success(
+        self,
+        async_client: AsyncClient,
+        portfolio_a: Portfolio,
+        sample_stock: Stock,
+        token_user_a: str,
+    ):
+        headers = auth_header(token_user_a)
+
+        # 1. Deposit funds
+        await async_client.post(
+            f"/api/v1/portfolios/{portfolio_a.id}/deposit",
+            json={"amount": 10000.0},
+            headers=headers,
+        )
+
+        # 2. BUY 10 shares @ 100
+        await async_client.post(
+            f"/api/v1/portfolios/{portfolio_a.id}/transactions",
+            json={
+                "stock_symbol": sample_stock.symbol,
+                "transaction_type": "BUY",
+                "quantity": 10.0,
+                "price_per_share": 100.0,
+            },
+            headers=headers,
+        )
+
+        # 3. BUY 10 shares @ 150
+        await async_client.post(
+            f"/api/v1/portfolios/{portfolio_a.id}/transactions",
+            json={
+                "stock_symbol": sample_stock.symbol,
+                "transaction_type": "BUY",
+                "quantity": 10.0,
+                "price_per_share": 150.0,
+            },
+            headers=headers,
+        )
+
+        # 4. SELL 5 shares @ 200
+        await async_client.post(
+            f"/api/v1/portfolios/{portfolio_a.id}/transactions",
+            json={
+                "stock_symbol": sample_stock.symbol,
+                "transaction_type": "SELL",
+                "quantity": 5.0,
+                "price_per_share": 200.0,
+            },
+            headers=headers,
+        )
+
+        response = await async_client.get(
+            f"/api/v1/portfolios/{portfolio_a.id}/holdings",
+            headers=headers,
+        )
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        
+        holding = data[0]
+        assert holding["stock_symbol"] == sample_stock.symbol
+        assert holding["quantity"] == 15.0
+        assert holding["weighted_average_buy_price"] == 125.0
+        assert holding["current_price"] == 200.0
+        assert holding["total_value"] == 3000.0
+        assert holding["unrealized_pnl"] == 1125.0
+
+    @pytest.mark.asyncio
+    async def test_get_holdings_wrong_user(
+        self,
+        async_client: AsyncClient,
+        portfolio_a: Portfolio,
+        token_user_b: str,
+    ):
+        """User B should not be able to see User A's holdings."""
+        response = await async_client.get(
+            f"/api/v1/portfolios/{portfolio_a.id}/holdings",
+            headers=auth_header(token_user_b),
+        )
+        assert response.status_code == 403
