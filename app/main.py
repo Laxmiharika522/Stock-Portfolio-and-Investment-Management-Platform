@@ -45,12 +45,18 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("📚 Swagger UI  : http://%s:%s/docs", display_host, settings.PORT)
     logger.info("📖 ReDoc       : http://%s:%s/redoc", display_host, settings.PORT)
 
-    # Future days will add: DB connection, Redis ping, scheduler start, etc.
+    from apscheduler.schedulers.asyncio import AsyncIOScheduler
+    from app.tasks.price_monitor import check_watchlist_prices
+    
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(check_watchlist_prices, 'interval', minutes=5)
+    scheduler.start()
+    logger.info("⏰ APScheduler started for price monitoring (5m interval).")
 
     yield  # ← Application is running
 
     logger.info("🛑 Shutting down %s", settings.APP_NAME)
-    # Future days will add: DB disconnect, scheduler stop, etc.
+    scheduler.shutdown()
 
 
 # ── FastAPI Application ───────────────────────────────────────────────────────
@@ -212,8 +218,8 @@ from app.api.v1.watchlist import router as watchlist_router
 app.include_router(watchlist_router, prefix="/api/v1")
 
 # Day 10+: Notifications
-# from app.api.v1.notifications import router as notifications_router
-# app.include_router(notifications_router, prefix="/api/v1")
+from app.api.v1.notifications import router as notifications_router
+app.include_router(notifications_router, prefix="/api/v1")
 
 # Day 12+: Upload
 # from app.api.v1.upload import router as upload_router

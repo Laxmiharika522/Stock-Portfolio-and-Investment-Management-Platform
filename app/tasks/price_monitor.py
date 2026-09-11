@@ -74,7 +74,16 @@ async def check_watchlist_prices():
                     triggered_count += 1
                     logger.info(f"Alert triggered for user {w.user_id} on {symbol}: price {current_price_decimal} is {w.alert_type} target {target_decimal}")
                     
-                    # NOTE: In Day 10, we will integrate Notification generation here.
+                    from app.services.notification_service import NotificationService
+                    from app.models.notification import NotificationType
+                    await NotificationService.create_notification(
+                        db=db,
+                        user_id=w.user_id,
+                        type=NotificationType.PRICE_ALERT,
+                        title=f"Price Alert: {symbol}",
+                        message=f"{symbol} has reached your target price of ${target_decimal}. Current price is ${current_price_decimal}.",
+                        related_stock_id=w.stock_id,
+                    )
 
             if triggered_count > 0:
                 await db.commit()

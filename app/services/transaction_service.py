@@ -25,6 +25,8 @@ from app.models.portfolio import Portfolio
 from app.models.stock import Stock
 from app.models.transaction import Transaction, TransactionType
 from app.schemas.transaction import TransactionCreate
+from app.services.notification_service import NotificationService
+from app.models.notification import NotificationType
 
 
 # ── Internal Helpers ──────────────────────────────────────────────────────────
@@ -167,6 +169,17 @@ async def execute_transaction(
     db.add(transaction)
     await db.commit()
     await db.refresh(portfolio)
+    
+    # 6. Create trade confirmation notification
+    await NotificationService.create_notification(
+        db=db,
+        user_id=portfolio.user_id,
+        type=NotificationType.TRADE_CONFIRM,
+        title=f"Trade Confirmation: {tx_in.transaction_type.value} {stock.symbol}",
+        message=f"Successfully executed {tx_in.transaction_type.value} of {tx_in.quantity} shares of {stock.symbol} at ${tx_in.price_per_share}.",
+        related_stock_id=stock.id,
+    )
+
     # Eager-load stock on the transaction for the response
     stmt = (
         select(Transaction)

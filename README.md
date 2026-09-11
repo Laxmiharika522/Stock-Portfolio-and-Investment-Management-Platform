@@ -182,6 +182,31 @@ During **Day 8**, external live market data from Alpha Vantage was integrated:
 
 ---
 
+## ✅ DAY 9 Implementation — Watchlist & Target Price Alerts
+
+> **Date:** 11 Sept 2026 | **Status:** ✅ Completed
+
+During **Day 9**, Watchlist creation and target price alerting mechanisms were built:
+- **Watchlist Model & Schemas:** Designed the many-to-many associated `Watchlist` table with target prices and `alert_type` (ABOVE/BELOW).
+- **Service & Endpoints:** Built CRUD logic and API endpoints `GET /api/v1/watchlist`, `POST /api/v1/watchlist`, `PUT /api/v1/watchlist/{id}`, and `DELETE /api/v1/watchlist/{id}`.
+- **Background Price Monitor:** Added an asynchronous background task (`price_monitor.py`) that checks active watchlist targets against live market data, marking them as triggered when conditions are met.
+
+---
+
+## ✅ DAY 10 Implementation — Notifications & Advanced Background Tasks
+
+> **Date:** 11 Sept 2026 | **Status:** ✅ Completed
+
+During **Day 10**, an internal in-app notifications system and APScheduler integration were completed:
+- **Notification Database Model:** Created `Notification` entity to log `PRICE_ALERT`, `TRADE_CONFIRM`, and `SYSTEM` events.
+- **Service & Endpoints:** Implemented `NotificationService` and `/api/v1/notifications` router allowing users to fetch, mark-read, mark-all-read, get unread-count, and delete notifications.
+- **Event Wiring:** 
+  - Wired **Trade Confirmations** into `transaction_service.py` to notify users on successful BUY/SELL executions.
+  - Wired **Price Alerts** into `price_monitor.py` to notify users when target watchlist prices are crossed.
+- **APScheduler:** Installed `APScheduler` and configured `main.py` lifespan to automatically execute the `price_monitor` task every 5 minutes in the background.
+
+---
+
 ## 🌐 API Endpoint Summary
 
 | Method | Endpoint | Auth Required | Description | Success Status | Error Codes |
@@ -381,8 +406,8 @@ tests/test_transactions.py ...............                               [100%]
 | **Day 6** | **BUY / SELL transactions with balance validation, cash deposit, paginated history & InsufficientFunds/Shares errors** | ✅ Completed |
 | **Day 7** | **Holdings calculation (weighted average buy price & unrealized P&L)** | ✅ Completed |
 | **Day 8** | **Market data integration (Alpha Vantage API)** | ✅ Completed |
-| **Day 9** | Watchlist & target price alerts | 🔲 Planned |
-| **Day 10** | Notifications & background task monitoring | 🔲 Planned |
+| **Day 9** | **Watchlist & target price alerts** | ✅ Completed |
+| **Day 10** | **Notifications & background task monitoring** | ✅ Completed |
 | **Day 11** | Advanced search, multi-field filtering & sorting | 🔲 Planned |
 | **Day 12** | CSV file upload for bulk transaction import | 🔲 Planned |
 | **Day 13** | Admin panel, Role-Based Access Control (RBAC) & security hardening | 🔲 Planned |
