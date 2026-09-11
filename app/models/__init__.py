@@ -9,6 +9,7 @@ from app.models.user import User
 from app.models.portfolio import Portfolio
 from app.models.stock import Stock
 from app.models.transaction import Transaction, TransactionType
+from app.models.watchlist import Watchlist, AlertType
 
 __all__ = [
     "Base",
@@ -18,4 +19,6 @@ __all__ = [
     "Stock",
     "Transaction",
     "TransactionType",
+    "Watchlist",
+    "AlertType",
 ]
