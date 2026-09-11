@@ -208,8 +208,8 @@ from app.api.v1.market import router as market_router
 app.include_router(market_router, prefix="/api/v1")
 
 # Day 9+: Watchlist
-# from app.api.v1.watchlist import router as watchlist_router
-# app.include_router(watchlist_router, prefix="/api/v1")
+from app.api.v1.watchlist import router as watchlist_router
+app.include_router(watchlist_router, prefix="/api/v1")
 
 # Day 10+: Notifications
 # from app.api.v1.notifications import router as notifications_router
