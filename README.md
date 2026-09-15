@@ -207,6 +207,17 @@ During **Day 10**, an internal in-app notifications system and APScheduler integ
 
 ---
 
+## ✅ DAY 11 Implementation — Advanced Search, Multi-Field Filtering & Sorting
+
+> **Date:** 15 Sept 2026 | **Status:** ✅ Completed
+
+During **Day 11**, the stock catalog search was enhanced to support advanced multi-field filtering:
+- **Industry Subcategory Filter:** Added `industry` parameter to filter stocks by specific industry niches within a sector.
+- **Market Capitalization Filters:** Added `min_market_cap` and `max_market_cap` filters to query stocks based on size.
+- **Service & Endpoint Enhancements:** Updated the `list_stocks` service and `GET /api/v1/stocks` endpoint to parse and execute these new filters dynamically, integrating them into the existing pagination and sorting logic.
+
+---
+
 ## 🌐 API Endpoint Summary
 
 | Method | Endpoint | Auth Required | Description | Success Status | Error Codes |
@@ -408,7 +419,7 @@ tests/test_transactions.py ...............                               [100%]
 | **Day 8** | **Market data integration (Alpha Vantage API)** | ✅ Completed |
 | **Day 9** | **Watchlist & target price alerts** | ✅ Completed |
 | **Day 10** | **Notifications & background task monitoring** | ✅ Completed |
-| **Day 11** | Advanced search, multi-field filtering & sorting | 🔲 Planned |
+| **Day 11** | **Advanced search, multi-field filtering & sorting** | ✅ Completed |
 | **Day 12** | CSV file upload for bulk transaction import | 🔲 Planned |
 | **Day 13** | Admin panel, Role-Based Access Control (RBAC) & security hardening | 🔲 Planned |
 | **Day 14** | Pytest test suite & automated test runner | 🔲 Planned |

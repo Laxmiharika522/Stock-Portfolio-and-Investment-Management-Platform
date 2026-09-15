@@ -334,7 +334,10 @@ async def list_stocks(
     db: AsyncSession,
     q: Optional[str] = None,
     sector: Optional[str] = None,
+    industry: Optional[str] = None,
     exchange: Optional[str] = None,
+    min_market_cap: Optional[float] = None,
+    max_market_cap: Optional[float] = None,
     sort_by: str = "symbol",
     order: str = "asc",
     page: int = 1,
@@ -364,6 +367,15 @@ async def list_stocks(
 
     if exchange:
         query = query.where(Stock.exchange.ilike(f"%{exchange.strip()}%"))
+
+    if industry:
+        query = query.where(Stock.industry.ilike(f"%{industry.strip()}%"))
+
+    if min_market_cap is not None:
+        query = query.where(Stock.market_cap >= min_market_cap)
+
+    if max_market_cap is not None:
+        query = query.where(Stock.market_cap <= max_market_cap)
 
     # Count matching total records
     count_stmt = select(func.count()).select_from(query.subquery())
