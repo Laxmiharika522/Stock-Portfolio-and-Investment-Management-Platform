@@ -6,10 +6,12 @@ All endpoints are scoped under a portfolio (ownership enforced).
 
 from __future__ import annotations
 
+import csv
+import io
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, status, UploadFile, File, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_active_user, get_db
@@ -23,6 +25,7 @@ from app.schemas.transaction import (
     TransactionCreate,
     TransactionOut,
     TransactionResponse,
+    BulkImportResponse,
 )
 from app.services.portfolio_service import PortfolioService
 from app.services.transaction_service import (
@@ -181,3 +184,62 @@ async def get_transaction(
     await _get_owned_portfolio(portfolio_id, current_user, db)
     transaction = await get_transaction_by_id(db, transaction_id, portfolio_id)
     return TransactionOut.model_validate(transaction)
+
+
+# ── Bulk Import Transactions ──────────────────────────────────────────────────
+
+@router.post(
+    "/portfolios/{portfolio_id}/transactions/bulk-import",
+    response_model=BulkImportResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Bulk import transactions via CSV",
+    description=(
+        "Upload a CSV file containing transactions. "
+        "Required columns: stock_symbol, transaction_type, quantity, price_per_share, optional: fees, notes, transacted_at"
+    ),
+)
+async def bulk_import_transactions(
+    portfolio_id: uuid.UUID,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> BulkImportResponse:
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(status_code=400, detail="Only CSV files are allowed.")
+    
+    portfolio = await _get_owned_portfolio(portfolio_id, current_user, db)
+    
+    content = await file.read()
+    try:
+        decoded_content = content.decode('utf-8')
+    except UnicodeDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid file encoding. Must be UTF-8.")
+        
+    csv_reader = csv.DictReader(io.StringIO(decoded_content))
+    if not csv_reader.fieldnames:
+        raise HTTPException(status_code=400, detail="Empty or invalid CSV file.")
+        
+    imported_count = 0
+    
+    for row in csv_reader:
+        # Remove empty strings to allow Pydantic to use default values
+        clean_row = {k: v for k, v in row.items() if v != ""}
+        try:
+            tx_in = TransactionCreate(**clean_row)
+            await execute_transaction(db, portfolio, tx_in)
+            imported_count += 1
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Error in row {imported_count + 1}: {str(e)}")
+            
+    await db.refresh(portfolio)
+    
+    return BulkImportResponse(
+        message=f"Successfully imported {imported_count} transactions.",
+        total_imported=imported_count,
+        portfolio_balance=PortfolioBalanceUpdate(
+            portfolio_id=portfolio.id,
+            cash_balance=portfolio.cash_balance,
+            total_invested=portfolio.total_invested,
+            currency=portfolio.currency,
+        )
+    )
