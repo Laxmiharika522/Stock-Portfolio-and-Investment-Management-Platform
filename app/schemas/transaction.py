@@ -171,6 +171,13 @@ class DepositResponse(BaseModel):
     portfolio_balance: PortfolioBalanceUpdate
 
 
+class BulkImportResponse(BaseModel):
+    """Response after a successful bulk transaction import."""
+    message: str
+    total_imported: int
+    portfolio_balance: PortfolioBalanceUpdate
+
+
 class PaginatedTransactionResponse(BaseModel):
     """Paginated list of transaction history."""
     items: List[TransactionOut]
