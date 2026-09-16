@@ -420,7 +420,7 @@ tests/test_transactions.py ...............                               [100%]
 | **Day 9** | **Watchlist & target price alerts** | ✅ Completed |
 | **Day 10** | **Notifications & background task monitoring** | ✅ Completed |
 | **Day 11** | **Advanced search, multi-field filtering & sorting** | ✅ Completed |
-| **Day 12** | CSV file upload for bulk transaction import | 🔲 Planned |
+| **Day 12** | **CSV file upload for bulk transaction import** | ✅ Completed |
 | **Day 13** | Admin panel, Role-Based Access Control (RBAC) & security hardening | 🔲 Planned |
 | **Day 14** | Pytest test suite & automated test runner | 🔲 Planned |
 | **Day 15** | Docker containerization, deployment & final review | 🔲 Planned |
