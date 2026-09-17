@@ -21,6 +21,10 @@ from app.core.exceptions import register_exception_handlers
 from app.core.custom_docs import get_custom_swagger_ui_html
 from app.api.v1.health import router as health_router
 
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from app.core.limiter import limiter
+
 # ── Logging Configuration ─────────────────────────────────────────────────────
 logging.basicConfig(
     level=logging.DEBUG if settings.DEBUG else logging.INFO,
@@ -119,6 +123,9 @@ app = FastAPI(
         },
     ],
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
 # ── Middleware ────────────────────────────────────────────────────────────────
@@ -226,5 +233,5 @@ app.include_router(notifications_router, prefix="/api/v1")
 # app.include_router(upload_router, prefix="/api/v1")
 
 # Day 13+: Admin
-# from app.api.v1.admin import router as admin_router
-# app.include_router(admin_router, prefix="/api/v1")
+from app.api.v1.admin import router as admin_router
+app.include_router(admin_router, prefix="/api/v1")

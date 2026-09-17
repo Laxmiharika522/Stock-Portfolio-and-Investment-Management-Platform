@@ -3,12 +3,16 @@ Authentication Router — Day 3
 API Endpoints for User Registration, Login, Token Refresh, and Session Management.
 """
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi.security import OAuth2PasswordBearer
 
 from app.db.session import get_db
 from app.schemas.user import UserCreate, UserLogin, UserOut, Token, TokenRefresh
 from app.services.auth_service import AuthService
+from app.core.limiter import limiter
+from app.core.security import blacklist_token
+from app.api.deps import reusable_oauth2
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -20,7 +24,9 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
     summary="Register new user account",
     description="Registers a new user with unique email & username, hashing their password with bcrypt.",
 )
+@limiter.limit("3/minute")
 async def register(
+    request: Request,
     user_in: UserCreate,
     db: AsyncSession = Depends(get_db),
 ) -> UserOut:
@@ -34,7 +40,9 @@ async def register(
     summary="Authenticate user & obtain JWT tokens",
     description="Authenticates user credentials and returns signed JWT access and refresh tokens.",
 )
+@limiter.limit("5/minute")
 async def login(
+    request: Request,
     credentials: UserLogin,
     db: AsyncSession = Depends(get_db),
 ) -> Token:
@@ -59,6 +67,10 @@ async def refresh_token(
     summary="Logout user session",
     description="Logs out the current user session.",
 )
-async def logout():
+async def logout(
+    token: str = Depends(reusable_oauth2)
+):
+    if token:
+        blacklist_token(token)
     return {"success": True, "message": "Successfully logged out"}
 

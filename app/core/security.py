@@ -81,3 +81,13 @@ def decode_token(token: str, expected_type: str = "access") -> dict[str, Any]:
         return payload
     except JWTError as exc:
         raise UnauthorizedException(f"Could not validate credentials: {str(exc)}")
+
+BLACKLISTED_TOKENS = set()
+
+def blacklist_token(token: str):
+    """Add a token to the blacklist."""
+    BLACKLISTED_TOKENS.add(token)
+
+def is_token_blacklisted(token: str) -> bool:
+    """Check if a token has been blacklisted."""
+    return token in BLACKLISTED_TOKENS

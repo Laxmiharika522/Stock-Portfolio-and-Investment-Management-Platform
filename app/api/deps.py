@@ -27,6 +27,10 @@ async def get_current_user(
     if not token:
         raise UnauthorizedException("Authentication token is missing")
 
+    from app.core.security import is_token_blacklisted
+    if is_token_blacklisted(token):
+        raise UnauthorizedException("Token has been revoked/logged out")
+
     payload = decode_token(token, expected_type="access")
     user_id_str: str = payload.get("sub", "")
     try:
