@@ -218,6 +218,27 @@ During **Day 11**, the stock catalog search was enhanced to support advanced mul
 
 ---
 
+## ✅ DAY 14 Implementation — Pytest Test Suite & Automated Test Runner
+
+> **Status:** ✅ Completed
+
+During **Day 14**, the Pytest testing framework and automated CI/CD pipeline were configured:
+- **Pytest Configuration (`pytest.ini`):** Configured pytest defaults including `asyncio_default_fixture_loop_scope` and coverage reporting.
+- **GitHub Actions (`.github/workflows/test.yml`):** Implemented an automated test runner workflow that spins up a PostgreSQL service container, installs dependencies, and runs the entire test suite on every push and pull request to the `main` branch.
+
+---
+
+## ✅ DAY 15 Implementation — Docker Containerization, Deployment & Final Review
+
+> **Status:** ✅ Completed
+
+During **Day 15**, the application was fully containerized for deployment:
+- **Dockerfile:** Created a production-ready Dockerfile using the slim Python 3.13 image to serve the FastAPI application via Uvicorn.
+- **Docker Compose (`docker-compose.yml`):** Configured a multi-container environment orchestrating the FastAPI application and the PostgreSQL database, including health checks and persistent volume mounts.
+- **Final Review:** Conducted a comprehensive code review and finalized the deployment configuration for production rollout.
+
+---
+
 ## 🌐 API Endpoint Summary
 
 | Method | Endpoint | Auth Required | Description | Success Status | Error Codes |
@@ -422,8 +443,8 @@ tests/test_transactions.py ...............                               [100%]
 | **Day 11** | **Advanced search, multi-field filtering & sorting** | ✅ Completed |
 | **Day 12** | **CSV file upload for bulk transaction import** | ✅ Completed |
 | **Day 13** | **Admin panel, Role-Based Access Control (RBAC) & security hardening** | ✅ Completed |
-| **Day 14** | Pytest test suite & automated test runner | 🔲 Planned |
-| **Day 15** | Docker containerization, deployment & final review | 🔲 Planned |
+| **Day 14** | **Pytest test suite & automated test runner** | ✅ Completed |
+| **Day 15** | **Docker containerization, deployment & final review** | ✅ Completed |
 
 ---
 
