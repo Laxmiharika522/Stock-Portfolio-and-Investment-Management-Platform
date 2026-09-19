@@ -397,6 +397,17 @@ python -m uvicorn app.main:app --reload --port 8000
 .\.venv\Scripts\python.exe -m pytest tests/ -v
 ```
 
+### 7. Run Demo Sequence
+An automated end-to-end demo script is included to showcase the core flow (User Registration -> Portfolio Creation -> Cash Deposit -> Stock Buy -> Holdings Check -> Stock Sell -> Transaction History).
+To run it, first ensure you have seeded the database with stocks:
+```powershell
+python -c "import asyncio; from app.db.session import AsyncSessionLocal; from app.services.stock_service import seed_popular_stocks; asyncio.run(seed_popular_stocks(AsyncSessionLocal()))"
+```
+Then run the demo script (while the server is running in another terminal):
+```powershell
+python demo.py
+```
+
 ---
 
 ## 🌐 Access Points & Documentation
